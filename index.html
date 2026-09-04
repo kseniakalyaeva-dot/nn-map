@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>Навигатор по Нижнему Новгороду</title>
+    <title>Пешие маршруты по Нижнему Новгороду</title>
     
     <!-- Библиотека карт -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
@@ -55,10 +55,10 @@
 <body>
 
 <div class="panel">
-    <h2>Откуда 🚶‍♂️</h2>
+    <h2>🚶‍♂️ Откуда</h2>
     <div id="list-a"></div>
     <hr style="border: none; border-top: 2px dashed #eee; margin: 15px 0;">
-    <h2>Куда 📍</h2>
+    <h2>📍 Куда</h2>
     <div id="list-b"></div>
 </div>
 
@@ -69,7 +69,7 @@
 <script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.js"></script>
 
 <script>
-    // ВАШ ПОЛНЫЙ СПИСОК ИЗ 9 ТОЧЕК
+    // ВАШ ПОЛНЫЙ СПИСОК ИЗ 9 ТОЧЕК 👇
     const points = [
         {id: 1, name: 'Нижегородский кремль', coords: [56.328624, 44.002842]},
         {id: 7, name: 'Памятник Минину', coords: [56.326761, 44.006844]},
@@ -88,10 +88,10 @@
     let selectedB = null;
 
     function initMap() {
-        map = L.map('map').setView([56.327, 43.995], 13);
+        map = L.map('map').setView([56.327, 43.995], 13); // Центр карты
 
-        // Бесплатная карта от Яндекса
-        L.tileLayer('https://core-renderer-tiles.maps.yandex.net/tiles?l=map&v=23.08.26&x={x}&y={y}&z={z}', {
+        // Бесплатная карта от Яндекс 🗺️
+        L.tileLayer('https://core-renderer-tiles.maps.yandex.net/tiles?l=map&v=23.08.26&x={x}&y={y}&z={x}', {
             maxZoom: 19,
             minZoom: 2,
             subdomains: ['tiles'],
@@ -100,7 +100,7 @@
         }).addTo(map);
 
         renderLists();
-        placeStaticMarkers();
+        placeStaticMarkers(); // Ставит метки всех точек на карте сразу при загрузке страницы
     }
 
     function clearOldRoute() {
@@ -146,7 +146,9 @@
 
     function renderLists() {
         const containerA = document.getElementById('list-a');
-        const containerB = document.getElementById('list-b');
+        const containerB = document.getElementHow this file works:
+
+document.getElementById('list-b');
 
         points.forEach((point, index) => {
             // Кнопки выбора СТАРТА
