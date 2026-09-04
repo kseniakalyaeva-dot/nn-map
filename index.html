@@ -2,12 +2,10 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>Навигатор: Из точки А в точку Б</title>
+    <title>Навигатор по Нижнему Новгороду</title>
     
-    <!-- Библиотека карты -->
+    <!-- Библиотека карт -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
-    
-    <!-- Библиотека прокладки маршрутов (исправляет проблему со сборкой) -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css"/>
     
     <style>
@@ -24,7 +22,6 @@
             box-shadow: 0 4px 15px rgba(0,0,0,0.2);
             z-index: 1000;
             display: grid;
-            grid-template-columns: 1fr 1fr;
             gap: 15px;
             max-width: 360px;
         }
@@ -35,8 +32,6 @@
             color: #333; 
             text-align: center;
         }
-        .col { border-right: 1px solid #eee; padding-right: 10px; }
-        .col:last-child { border-right: none; padding-left: 10px; }
         
         button {
             width: 100%;
@@ -60,19 +55,16 @@
 <body>
 
 <div class="panel">
-    <div class="col">
-        <h2>🚶‍♂️ Откуда (A)</h2>
-        <div id="list-a"></div>
-    </div>
-    <div class="col">
-        <h2>📍 Куда (B)</h2>
-        <div id="list-b"></div>
-    </div>
+    <h2>Откуда 🚶‍♂️</h2>
+    <div id="list-a"></div>
+    <hr style="border: none; border-top: 2px dashed #eee; margin: 15px 0;">
+    <h2>Куда 📍</h2>
+    <div id="list-b"></div>
 </div>
 
 <div id="map"></div>
 
-<!-- Скрипты -->
+<!-- Подключение скриптов -->
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.js"></script>
 
@@ -98,8 +90,13 @@
     function initMap() {
         map = L.map('map').setView([56.327, 43.995], 13);
 
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '&copy; OpenStreetMap contributors'
+        // Бесплатная карта от Яндекса
+        L.tileLayer('https://core-renderer-tiles.maps.yandex.net/tiles?l=map&v=23.08.26&x={x}&y={y}&z={z}', {
+            maxZoom: 19,
+            minZoom: 2,
+            subdomains: ['tiles'],
+            attribution: '© Яндекс',
+            id: 'yandex#map'
         }).addTo(map);
 
         renderLists();
@@ -142,7 +139,8 @@
 
     function placeStaticMarkers() {
         points.forEach(p => {
-            L.marker(p.coords).addTo(map).bindPopup(`<b>${p.name}</b>`, {closeButton: false});
+            L.marker(p.coords).addTo(map)
+                .bindPopup(`<b>${p.name}</b>`, {closeButton: false});
         });
     }
 
