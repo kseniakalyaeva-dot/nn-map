@@ -67,6 +67,22 @@
       /* Цвета активных кнопок */
       .active-a { background: #d4edda !important; border-color: #155724 !important; font-weight: bold; }
       .active-b { background: #f8d7da !important; border-color: #721c24 !important; font-weight: bold; }
+
+      /* Блок с маршрутом */
+      .route-info {
+        grid-column: 1 / -1;
+        padding: 10px;
+        border-top: 1px dashed #ddd;
+        font-size: 14px;
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.3s ease-in-out;
+      }
+
+      .route-info.active {
+        opacity: 1;
+        visibility: visible;
+      }
     </style>
   </head>
 
@@ -77,6 +93,8 @@
       <hr style="border: none; border-top: 2px dashed #eee; margin: 15px 0;" />
       <h2>📍 Куда</h2>
       <div id="list-b"></div>
+      <!-- Здесь будет информация о времени пути -->
+      <div class="route-info">Путь не построен.</div>
     </div>
 
     <div id="map"></div>
@@ -127,6 +145,43 @@
           map.removeControl(control);
           control = null;
         }
+
+        // Скрываем информацию о маршруте
+        document.querySelector('.route-info').classList.remove('active');
+      }
+
+      /**
+       * Функция обновляет блок информации о маршруте.
+       * @param {Object} routeData Данные маршрута от Leaflet-Routing-Machine.
+       */
+      function updateRouteInfo(routeData) {
+        const infoBlock = document.querySelector('.route-info');
+
+        // Если данных нет или путь слишком короткий (< 10 метров)
+        if (!routeData || routeData.summary.total_distance < 10) {
+          infoBlock.textContent = '';
+          return;
+        }
+
+        // Форматируем расстояние
+        const distanceKm = Math.round(routeData.summary.total_distance / 1000 * 10) / 10;
+        const distanceText = `${distanceKm} км`;
+
+        // Форматируем время
+        const seconds = routeData.summary.total_time;
+        const minutes = Math.floor(seconds / 60);
+        const hours = Math.floor(minutes / 60);
+
+        let timeText;
+        if (hours > 0) {
+          timeText = `${hours} ч ${minutes % 60} мин`;
+        } else {
+          timeText = `${minutes} мин`;
+        }
+
+        // Собираем итоговую строку
+        infoBlock.textContent = `🚶 Пешком — ${distanceText}, ~${timeText}`;
+        infoBlock.classList.add('active'); // Показываем блок
       }
 
       function buildRoute(fromCoords, toCoords) {
@@ -144,7 +199,15 @@
           lineOptions: {
             styles: [{color: '#007bff', weight: 6}]
           },
-          router: L.Routing.osrmv1({serviceUrl: 'https://router.project-osrm.org/route/v1'})
+          router: L.Routing.osrmv1({serviceUrl: 'https://router.project-osrm.org/route/v1'}),
+          // Добавляем обработчик события построения маршрута
+          routeLine: function(routes, wps, opt) {
+            // Берём первый найденный маршрут (обычно их один)
+            const firstRoute = routes[0];
+            if (firstRoute && firstRoute.summary) {
+              updateRouteInfo(firstRoute);
+            }
+          }
         }).addTo(map);
 
         setTimeout(() => {
