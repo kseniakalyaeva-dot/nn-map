@@ -63,6 +63,7 @@
         border-color: #007bff;
       }
 
+      /* Цвета активных кнопок */
       .active-a { background: #d4edda !important; border-color: #155724 !important; font-weight: bold; }
       .active-b { background: #f8d7da !important; border-color: #721c24 !important; font-weight: bold; }
     </style>
@@ -86,15 +87,15 @@
     <script>
       // ВАШ ПОЛНЫЙ СПИСОК ИЗ 9 ТОЧЕК 👇
       const points = [
-        {id: 1, name: 'Нижегородский кремль', coords: [56.328624, 44.002842]}, // Точка №1
-        {id: 7, name: 'Памятник Минину', coords: [56.326761, 44.006844]}, // Точка №7
-        {id: 2, name: 'Чкаловская лестница', coords: [56.33083, 44.00944]}, // Точка №2
-        {id: 6, name: 'Набережная Федоровского', coords: [56.326348, 43.987481]}, // Точка №6
-        {id: 4, name: 'Рождественская церковь', coords: [56.327343, 43.985028]}, // Точка №4
-        {id: 3, name: 'Улица Большая Покровская', coords: [56.317088, 43.994829]}, // Точка №3
-        {id: 5, name: 'Нижегородская ярмарка', coords: [56.3284456049, 43.9611679730]}, // Точка №5
-        {id: 8, name: 'Александро-Невский собор', coords: [56.3336, 43.97118]}, // Точка №8
-        {id: 9, name: 'Канатная дорога', coords: [56.323611, 44.039167]} // Точка №9
+        {id: 1, name: 'Нижегородский кремль', coords: [56.328624, 44.002842]},
+        {id: 2, name: 'Чкаловская лестница', coords: [56.33083, 44.00944]},  
+        {id: 3, name: 'Улица Большая Покровская', coords: [56.317088, 43.994829]},   
+        {id: 4, name: 'Рождественская церковь', coords: [56.327343, 43.985028]},     
+        {id: 5, name: 'Нижегородская ярмарка', coords: [56.3284456049, 43.9611679730]}, 
+        {id: 6, name: 'Набережная Федоровского', coords: [56.326348, 43.987481]},  
+        {id: 7, name: 'Памятник Минину', coords: [56.326761, 44.006844]},        
+        {id: 8, name: 'Александро-Невский собор', coords: [56.3336, 43.97118]},       
+        {id: 9, name: 'Канатная дорога', coords: [56.323611, 44.039167]}
       ];
 
       let map;
@@ -139,9 +140,7 @@
           routeWhileDragging: false,
           showAlternatives: false,
           collapsible: true,
-          createMarker: function(i) {
-            return L.marker(null);
-          },
+          createMarker: function(i) { return L.marker(null); },
           lineOptions: {
             styles: [{color: '#007bff', weight: 6}]
           },
@@ -149,9 +148,7 @@
         }).addTo(map);
 
         setTimeout(() => {
-          try {
-            map.fitBounds(control.getBounds(), {padding: [60, 60]});
-          } catch {}
+          try { map.fitBounds(control.getBounds(), {padding: [60, 60]}); } catch(e) {}
         }, 1500);
       }
 
