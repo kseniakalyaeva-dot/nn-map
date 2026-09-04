@@ -139,17 +139,17 @@
 
     function placeStaticMarkers() {
         points.forEach(p => {
-            L.marker(p.coords).addTo(map)
-                .bindPopup(`<b>${p.name}</b>`, {closeButton: false});
+            L.marker(p.coords)
+              .bindPopup(`<b>${p.name}</b>`, {closeButton: false})
+              .addTo(map);
         });
     }
 
     function renderLists() {
         const containerA = document.getElementById('list-a');
-        const containerB = document.getElementAfterId('list-b');
+        const containerB = document.getElementById('list-b');
 
         points.forEach((point, index) => {
-            // Кнопки выбора СТАРТА
             const btnA = document.createElement('button');
             btnA.textContent = `${index + 1}. ${point.name}`;
             btnA.onclick = () => {
@@ -166,7 +166,6 @@
             };
             containerA.appendChild(btnA);
 
-            // Кнопки выбора ФИНИША
             const btnB = document.createElement('button');
             btnB.textContent = `${index + 1}. ${point.name}`;
             btnB.onclick = () => {
