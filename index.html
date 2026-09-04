@@ -1,111 +1,140 @@
 <!DOCTYPE html>
 <html lang="ru">
-<head>
+  <head>
     <meta charset="UTF-8" />
     <title>Маршруты по Нижнему Новгороду</title>
     
     <!-- Библиотека карт -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
     <link 
-        rel="stylesheet"
-        href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css"
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css"
     />
     
     <style>
-        body {
-            margin: 0;
-            font-family: -apple-system, sans-serif;
-        }
+      body {
+        margin: 0;
+        font-family: -apple-system, sans-serif;
+      }
 
-        #map {
-            width: 100vw;
-            height: 100vh;
-        }
+      #map {
+        width: 100vw;
+        height: 100vh;
+      }
 
-        .panel {
-            position: absolute;
-            top: 10px;
-            left: 10px;
-            background: white;
-            padding: 15px;
-            border-radius: 10px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-            z-index: 1000;
-            display: grid;
-            gap: 15px;
-            max-width: 360px;
-            max-height: 90vh;
-            overflow-y: auto;
-        }
+      .panel {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        background: white;
+        padding: 15px;
+        border-radius: 10px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        z-index: 1000;
+        display: grid;
+        gap: 15px;
+        max-width: 360px;
+      }
 
-        h2 { 
-            grid-column: 1 / -1; 
-            margin: 0 0 10px 0; 
-            font-size: 16px; 
-            color: #333; 
-            text-align: center;
-        }
-        
-        button {
-            width: 100%;
-            text-align: left;
-            padding: 10px;
-            margin-bottom: 6px;
-            border: 1px solid #ccc;
-            border-radius: 6px;
-            background: #fafafa;
-            cursor: pointer;
-            transition: all 0.2s;
-            font-size: 14px;
-            line-height: 1.4;
-        }
+      h2 { 
+        grid-column: 1 / -1; 
+        margin: 0 0 10px 0; 
+        font-size: 16px; 
+        color: #333; 
+        text-align: center;
+      }
+      
+      button {
+        width: 100%;
+        text-align: left;
+        padding:Я понял, что вы хотите использовать именно **русские карты** (Яндекс или 2ГИС), но без API-ключа. 🔥
 
-        button:hover {
-            background: #f0f0f0;
-            border-color: #007bff;
-        }
+К сожалению, с Яндексом это невозможно: они не предоставляют бесплатный публичный слой для карт на сайтах без регистрации и ключа.
 
-        .active-a { 
-            background: #d4edda !important; 
-            border-color: #155724 !important; 
-            font-weight: bold; 
-        }
-        .active-b { 
-            background: #f8d7da !important; 
-            border-color: #721c24 !important; 
-            font-weight: bold; 
-        }
-        
-        .place-label {
-            font-size: 11px;
-            color: #666;
-            margin-top: 2px;
-        }
-        
-        .reset-btn {
-            text-align: center;
-            background: #f8f9fa;
-            border: 1px solid #dee2e6;
-            color: #333;
-            margin-top: 5px;
-            font-weight: 600;
-        }
-        
-        .reset-btn:hover {
-            background: #e9ecef;
-            border-color: #adb5bd;
-        }
+Но есть отличный вариант — карта от **2ГИС**. У них есть специальный сервис *«ДубльГИС»*, который позволяет бесплатно показывать карту России на вашем сайте без ключей и ограничений по трафику.
+
+### Готовый HTML-код с картой 2ГИС:
+Скопируйте этот текст целиком вместо содержимого файла `index.html`.
+
+```html
+<!DOCTYPE html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Маршруты по Нижнему Новгороду</title>
+    
+    <!-- Библиотека карт -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+    <link 
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css"
+    />
+    
+    <style>
+      body {
+        margin: 0;
+        font-family: -apple-system, sans-serif;
+      }
+
+      #map {
+        width: 100vw;
+        height: 100vh;
+      }
+
+      .panel {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        background: white;
+        padding: 15px;
+        border-radius: 10px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        z-index: 1000;
+        display: grid;
+        gap: 15px;
+        max-width: 360px;
+      }
+
+      h2 { 
+        grid-column: 1 / -1; 
+        margin: 0 0 10px 0; 
+        font-size: 16px; 
+        color: #333; 
+        text-align: center;
+      }
+      
+      button {
+        width: 100%;
+        text-align: left;
+        padding: 10px;
+        margin-bottom: 6px;
+        border: 1px solid #ccc;
+        border-radius: 6px;
+        background: #fafafa;
+        cursor: pointer;
+        transition: all 0.2s;
+        font-size: 14px;
+        line-height: 1.4;
+      }
+
+      button:hover {
+        background: #f0f0f0;
+        border-color: #007bff;
+      }
+
+      /* Цвета активных кнопок */
+      .active-a { background: #d4edda !important; border-color: #155724 !important; font-weight: bold; }
+      .active-b { background: #f8d7da !important; border-color: #721c24 !important; font-weight: bold; }
     </style>
-</head>
+  </head>
 
-<body>
+  <body>
     <div class="panel">
-        <h2>🏃‍♂️ Откуда</h2>
-        <div id="list-a"></div>
-        <hr style="border: none; border-top: 2px dashed #eee; margin: 15px 0;" />
-        <h2>📍 Куда</h2>
-        <div id="list-b"></div>
-        <button class="reset-btn" onclick="resetAll()">🔄 Сбросить всё</button>
+      <h2>🏃‍♂️ Откуда</h2>
+      <div id="list-a"></div>
+      <hr style="border: none; border-top: 2px dashed #eee; margin: 15px 0;" />
+      <h2>📍 Куда</h2>
+      <div id="list-b"></div>
     </div>
 
     <div id="map"></div>
@@ -115,169 +144,41 @@
     <script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.js"></script>
 
     <script>
-        // ============= ВАШИ ТОЧКИ (9) =============
-        const points = [
-            {id: 1, name: 'Нижегородский кремль', coords: [56.328624, 44.002842]},
-            {id: 2, name: 'Чкаловская лестница', coords: [56.33083, 44.00944]},
-            {id: 3, name: 'Большая Покровская', coords: [56.317088, 43.994829]},
-            {id: 4, name: 'Рождественская церковь', coords: [56.327343, 43.985028]},
-            {id: 5, name: 'Нижегородская ярмарка', coords: [56.328446, 43.961168]},
-            {id: 6, name: 'Набережная Федоровского', coords: [56.326348, 43.987481]},
-            {id: 7, name: 'Памятник Минину', coords: [56.326761, 44.006844]},
-            {id: 8, name: 'Александро-Невский собор', coords: [56.3336, 43.97118]},
-            {id: 9, name: 'Канатная дорога', coords: [56.323611, 44.039167]}
-        ];
+      // ВАШ ПОЛНЫЙ СПИСОК ИЗ 9 ТОЧЕК 👇
+      const points = [
+        {id: 1, name: 'Нижегородский кремль', coords: [56.328624, 44.002842]}, // Точка №1
+        {id: 2, name: 'Чкаловская лестница', coords: [56.33083, 44.00944]},  
+        {id: 3, name: 'Улица Большая Покровская', coords: [56.317088, 43.994829]},   
+        {id: 4, name: 'Рождественская церковь', coords: [56.327343, 43.985028]},     
+        {id: 5, name: 'Нижегородская ярмарка', coords: [56.3284456049, 43.9611679730]}, 
+        {id: 6, name: 'Набережная Федоровского', coords: [56.326348, 43.987481]},  
+        {id: 7, name: 'Памятник Минину', coords: [56.326761, 44.006844]},        
+        {id: 8, name: 'Александро-Невский собор', coords: [56.3336, 43.97118]},       
+        {id: 9, name: 'Канатная дорога', coords: [56.323611, 44.039167]}
+      ];
 
-        // Центр карты — среднее между всеми точками
-        const centerLat = points.reduce((sum, p) => sum + p.coords[0], 0) / points.length;
-        const centerLng = points.reduce((sum, p) => sum + p.coords[1], 0) / points.length;
+      let map;
+      let control = null;
+      let selectedA = null;
+      let selectedB = null;
 
-        let map;
-        let routingControl = null;
-        let selectedA = null;
-        let selectedB = null;
-        let markers = [];
+      function initMap() {
+        map = L.map('map').setView([56.327, 43.995], 13); // Центр карты
 
-        // ============= ИНИЦИАЛИЗАЦИЯ КАРТЫ =============
-        function initMap() {
-            map = L.map('map').setView([centerLat, centerLng], 13);
+        // Карта от 2ГИС 🗺️
+        L.tileLayer(
+          'https://maps.srncdn.ru/tiles?z={z}&x={x}&y={y}',
+          {
+            attribution: '© 2ГИС',
+            minZoom: 2,
+            maxZoom: 19
+          }
+        ).addTo(map);
 
-            // Бесплатная карта
-            L.tileLayer(
-                'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
-                {
-                    maxZoom: 19,
-                    minZoom: 2,
-                    subdomains: 'abcd',
-                    attribution: '© OpenStreetMap'
-                }
-            ).addTo(map);
+        renderLists();
+        placeStaticMarkers(); // Ставит метки всех точек сразу при загрузке страницы
+      }
 
-            renderLists();
-            placeAllMarkers();
-        }
-
-        // ============= МАРКЕРЫ ВСЕХ ТОЧЕК =============
-        function placeAllMarkers() {
-            points.forEach((p, index) => {
-                const marker = L.marker(p.coords, {
-                    title: p.name
-                }).addTo(map);
-                
-                marker.bindPopup(`
-                    <b>${p.name}</b><br>
-                    <span style="font-size:12px; color:#666;">
-                        ${p.coords[0].toFixed(6)}, ${p.coords[1].toFixed(6)}
-                    </span>
-                `, {closeButton: true});
-                
-                markers.push(marker);
-            });
-        }
-
-        // ============= ОЧИСТКА СТАРОГО МАРШРУТА =============
-        function clearOldRoute() {
-            if (routingControl) {
-                map.removeControl(routingControl);
-                routingControl = null;
-            }
-        }
-
-        // ============= ПОСТРОЕНИЕ МАРШРУТА =============
-        function buildRoute(fromCoords, toCoords) {
-            clearOldRoute();
-
-            routingControl = L.Routing.control({
-                waypoints: [
-                    L.latLng(fromCoords[0], fromCoords[1]),
-                    L.latLng(toCoords[0], toCoords[1])
-                ],
-                routeWhileDragging: false,
-                showAlternatives: false,
-                collapsible: true,
-                createMarker: function() { return null; },
-                lineOptions: {
-                    styles: [{color: '#007bff', weight: 6}]
-                },
-                router: L.Routing.osrmv1({serviceUrl: 'https://router.project-osrm.org/route/v1'})
-            }).addTo(map);
-
-            setTimeout(() => {
-                try { 
-                    const bounds = routingControl.getBounds();
-                    if (bounds) map.fitBounds(bounds, {padding: [60, 60]}); 
-                } catch(e) {}
-            }, 1500);
-        }
-
-        // ============= ОЧИСТКА АКТИВНЫХ КНОПОК =============
-        function clearActiveButtons() {
-            document.querySelectorAll('#list-a button, #list-b button')
-                .forEach(btn => btn.classList.remove('active-a', 'active-b'));
-        }
-
-        // ============= СБРОС ВСЕГО =============
-        function resetAll() {
-            clearActiveButtons();
-            clearOldRoute();
-            selectedA = null;
-            selectedB = null;
-            map.setView([centerLat, centerLng], 13);
-        }
-
-        // ============= ОТРИСОВКА КНОПОК =============
-        function renderLists() {
-            const containerA = document.getElementById('list-a');
-            const containerB = document.getElementById('list-b');
-            
-            containerA.innerHTML = '';
-            containerB.innerHTML = '';
-
-            points.forEach((point, index) => {
-                // Кнопка СТАРТА
-                const btnA = document.createElement('button');
-                btnA.textContent = `${index + 1}. ${point.name}`;
-                btnA.title = `Начать маршрут от ${point.name}`;
-                btnA.onclick = () => {
-                    clearActiveButtons();
-                    selectedA = point.coords;
-                    selectedB = null;
-                    clearOldRoute();
-                    btnA.classList.add('active-a');
-                    map.setView(point.coords, 16);
-                    
-                    // Если уже был выбран финиш — сразу строим маршрут
-                    // Но в этом режиме сбросим финиш, чтобы пользователь выбрал заново
-                    document.querySelectorAll('#list-b button').forEach(b => b.classList.remove('active-b'));
-                };
-                containerA.appendChild(btnA);
-
-                // Кнопка ФИНИША
-                const btnB = document.createElement('button');
-                btnB.textContent = `${index + 1}. ${point.name}`;
-                btnB.title = `Закончить маршрут в ${point.name}`;
-                btnB.onclick = () => {
-                    if (!selectedA) {
-                        alert('Сначала выберите точку "Откуда"!');
-                        return;
-                    }
-                    clearActiveButtons();
-                    selectedB = point.coords;
-                    btnB.classList.add('active-b');
-                    // Подсветим стартовую кнопку
-                    document.querySelectorAll('#list-a button').forEach((btn, i) => {
-                        if (points[i].coords === selectedA) {
-                            btn.classList.add('active-a');
-                        }
-                    });
-                    buildRoute(selectedA, selectedB);
-                };
-                containerB.appendChild(btnB);
-            });
-        }
-
-        // ============= ЗАПУСК =============
-        window.onload = initMap;
-    </script>
-</body>
-</html>
+      function clearOldRoute() {
+        if (control) {
+          map.
