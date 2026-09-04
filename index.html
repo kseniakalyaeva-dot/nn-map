@@ -3,14 +3,14 @@
   <head>
     <meta charset="UTF-8" />
     <title>Маршруты по Нижнему Новгороду</title>
-
+    
     <!-- Библиотека карт -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <link
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+    <link 
       rel="stylesheet"
       href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css"
     />
-
+    
     <style>
       body {
         margin: 0;
@@ -37,13 +37,13 @@
       }
 
       h2 {
-        grid-column: 1 / -1;
-        margin: 0 0 10px 0;
-        font-size: 16px;
-        color: #333;
+        grid-column: 1 / -1; 
+        margin: 0 0 10px 0; 
+        font-size: 16px; 
+        color: #333; 
         text-align: center;
       }
-
+      
       button {
         width: 100%;
         text-align: left;
@@ -63,17 +63,8 @@
         border-color: #007bff;
       }
 
-      .active-a {
-        background: #d4edda !important;
-        border-color: #155724 !important;
-        font-weight: bold;
-      }
-
-      .active-b {
-        background: #f8d7da !important;
-        border-color: #721c24 !important;
-        font-weight: bold;
-      }
+      .active-a { background: #d4edda !important; border-color: #155724 !important; font-weight: bold; }
+      .active-b { background: #f8d7da !important; border-color: #721c24 !important; font-weight: bold; }
     </style>
   </head>
 
@@ -95,15 +86,15 @@
     <script>
       // ВАШ ПОЛНЫЙ СПИСОК ИЗ 9 ТОЧЕК 👇
       const points = [
-        {id: 1, name: 'Нижегородский кремль', coords: [56.328624, 44.002842]},
-        {id: 7, name: 'Памятник Минину', coords: [56.326761, 44.006844]},
-        {id: 2, name: 'Чкаловская лестница', coords: [56.33083, 44.00944]},
-        {id: 6, name: 'Набережная Федоровского', coords: [56.326348, 43.987481]},
-        {id: 4, name: 'Рождественская церковь', coords: [56.327343, 43.985028]},
-        {id: 3, name: 'Улица Большая Покровская', coords: [56.317088, 43.994829]},
-        {id: 5, name: 'Нижегородская ярмарка', coords: [56.3284456049, 43.9611679730]},
-        {id: 8, name: 'Александро-Невский собор', coords: [56.3336, 43.97118]},
-        {id: 9, name: 'Канатная дорога', coords: [56.323611, 44.039167]}
+        {id: 1, name: 'Нижегородский кремль', coords: [56.328624, 44.002842]}, // Точка №1
+        {id: 7, name: 'Памятник Минину', coords: [56.326761, 44.006844]}, // Точка №7
+        {id: 2, name: 'Чкаловская лестница', coords: [56.33083, 44.00944]}, // Точка №2
+        {id: 6, name: 'Набережная Федоровского', coords: [56.326348, 43.987481]}, // Точка №6
+        {id: 4, name: 'Рождественская церковь', coords: [56.327343, 43.985028]}, // Точка №4
+        {id: 3, name: 'Улица Большая Покровская', coords: [56.317088, 43.994829]}, // Точка №3
+        {id: 5, name: 'Нижегородская ярмарка', coords: [56.3284456049, 43.9611679730]}, // Точка №5
+        {id: 8, name: 'Александро-Невский собор', coords: [56.3336, 43.97118]}, // Точка №8
+        {id: 9, name: 'Канатная дорога', coords: [56.323611, 44.039167]} // Точка №9
       ];
 
       let map;
@@ -139,7 +130,7 @@
 
       function buildRoute(fromCoords, toCoords) {
         clearOldRoute();
-
+        
         control = L.Routing.control({
           waypoints: [
             L.latLng(fromCoords[0], fromCoords[1]),
@@ -165,9 +156,9 @@
       }
 
       function clearActiveButtons() {
-        document.querySelectorAll('#list-a button, #list-b button').forEach((btn) =>
-          btn.classList.remove('active-a', 'active-b')
-        );
+        document.querySelectorAll('#list-a button, #list-b button')
+          .forEach((btn) =>
+            btn.classList.remove('active-a', 'active-b'));
       }
 
       function placeStaticMarkers() {
@@ -190,7 +181,7 @@
             clearActiveButtons();
             selectedA = point.coords;
             btnA.classList.add('active-a');
-
+            
             if (selectedB) {
               buildRoute(selectedA, selectedB);
             } else {
