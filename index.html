@@ -88,7 +88,7 @@
     <script>
       // ВАШ ПОЛНЫЙ СПИСОК ИЗ 9 ТОЧЕК 👇
       const points = [
-        {id: 1, name: 'Нижегородский кремль', coords: [56.328624, 44.002842]},
+        {id: 1, name: 'Нижегородский кремль', coords: [56.328624, 44.002842]}, // Точка №1
         {id: 2, name: 'Чкаловская лестница', coords: [56.33083, 44.00944]},  
         {id: 3, name: 'Улица Большая Покровская', coords: [56.317088, 43.994829]},   
         {id: 4, name: 'Рождественская церковь', coords: [56.327343, 43.985028]},     
@@ -107,13 +107,13 @@
       function initMap() {
         map = L.map('map').setView([56.327, 43.995], 13); // Центр карты
 
-        // Карта от 2ГИС 🔥
+        // Русская карта OpenTopoMap 🗺️
         L.tileLayer(
-          'https://maps.srncdn.ru/tiles?z={z}&x={x}&y={y}',
+          'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png',
           {
-            attribution: '© 2ГИС',
+            attribution: '© OpenTopoMap contributors',
             minZoom: 2,
-            maxZoom: 19
+            maxZoom: 17
           }
         ).addTo(map);
 
