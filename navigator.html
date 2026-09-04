@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Навигатор: Из точки А в точку Б</title>
+    
+    <!-- Библиотека карты -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+    
+    <!-- Библиотека прокладки маршрутов (исправляет проблему со сборкой) -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css"/>
+    
+    <style>
+        body { margin: 0; font-family: -apple-system, sans-serif; }
+        #map { width: 100vw; height: 100vh; }
+        
+        .panel {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            z-index: 1000;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            max-width: 360px;
+        }
+        h2 { 
+            grid-column: 1 / -1; 
+            margin: 0 0 10px 0; 
+            font-size: 16px; 
+            color: #333; 
+            text-align: center;
+        }
+        .col { border-right: 1px solid #eee; padding-right: 10px; }
+        .col:last-child { border-right: none; padding-left: 10px; }
+        
+        button {
+            width: 100%;
+            text-align: left;
+            padding: 10px;
+            margin-bottom: 6px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            background: #fafafa;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 14px;
+            line-height: 1.4;
+        }
+        button:hover { background: #f0f0f0; border-color: #007bff; }
+        
+        .active-a { background: #d4edda !important; border-color: #155724 !important; font-weight: bold; }
+        .active-b { background: #f8d7da !important; border-color: #721c24 !important; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<div class="panel">
+    <div class="col">
+        <h2>🚶‍♂️ Откуда (A)</h2>
+        <div id="list-a"></div>
+    </div>
+    <div class="col">
+        <h2>📍 Куда (B)</h2>
+        <div id="list-b"></div>
+    </div>
+</div>
+
+<div id="map"></div>
+
+<!-- Скрипты -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.js"></script>
+
+<script>
+    // ВАШ ПОЛНЫЙ СПИСОК ИЗ 9 ТОЧЕК
+    const points = [
+        {id: 1, name: 'Нижегородский кремль', coords: [56.328624, 44.002842]},
+        {id: 7, name: 'Памятник Минину', coords: [56.326761, 44.006844]},
+        {id: 2, name: 'Чкаловская лестница', coords: [56.33083, 44.00944]},
+        {id: 6, name: 'Набережная Федоровского', coords: [56.326348, 43.987481]},
+        {id: 4, name: 'Рождественская церковь', coords: [56.327343, 43.985028]},
+        {id: 3, name: 'Улица Большая Покровская', coords: [56.317088, 43.994829]},
+        {id: 5, name: 'Нижегородская ярмарка', coords: [56.3284456049, 43.9611679730]},
+        {id: 8, name: 'Александро-Невский собор', coords: [56.3336, 43.97118]},
+        {id: 9, name: 'Канатная дорога', coords: [56.323611, 44.039167]}
+    ];
+
+    let map;
+    let control = null;
+    let selectedA = null;
+    let selectedB = null;
+
+    function initMap() {
+        map = L.map('map').setView([56.327, 43.995], 13);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; OpenStreetMap contributors'
+        }).addTo(map);
+
+        renderLists();
+        placeStaticMarkers();
+    }
+
+    function clearOldRoute() {
+        if (control) {
+            map.removeControl(control);
+            control = null;
+        }
+    }
+
+    function buildRoute(fromCoords, toCoords) {
+        clearOldRoute();
+        
+        control = L.Routing.control({
+            waypoints: [
+                L.latLng(fromCoords[0], fromCoords[1]),
+                L.latLng(toCoords[0], toCoords[1])
+            ],
+            routeWhileDragging: false,
+            showAlternatives: false,
+            collapsible: true,
+            createMarker: function(i) { return L.marker(null); },
+            lineOptions: {
+                styles: [{color: '#007bff', weight: 6}]
+            },
+            router: L.Routing.osrmv1({serviceUrl: 'https://router.project-osrm.org/route/v1'})
+        }).addTo(map);
+
+        setTimeout(() => {
+            try { map.fitBounds(control.getBounds(), {padding: [60, 60]}); } catch(e) {}
+        }, 1500);
+    }
+
+    function clearActiveButtons() {
+        document.querySelectorAll('#list-a button, #list-b button').forEach(btn => btn.classList.remove('active-a', 'active-b'));
+    }
+
+    function placeStaticMarkers() {
+        points.forEach(p => {
+            L.marker(p.coords).addTo(map).bindPopup(`<b>${p.name}</b>`, {closeButton: false});
+        });
+    }
+
+    function renderLists() {
+        const containerA = document.getElementById('list-a');
+        const containerB = document.getElementById('list-b');
+
+        points.forEach((point, index) => {
+            // Кнопки выбора СТАРТА
+            const btnA = document.createElement('button');
+            btnA.textContent = `${index + 1}. ${point.name}`;
+            btnA.onclick = () => {
+                clearActiveButtons();
+                selectedA = point.coords;
+                btnA.classList.add('active-a');
+                
+                if (selectedB) {
+                    buildRoute(selectedA, selectedB);
+                } else {
+                    clearOldRoute();
+                    map.setView(point.coords, 16);
+                }
+            };
+            containerA.appendChild(btnA);
+
+            // Кнопки выбора ФИНИША
+            const btnB = document.createElement('button');
+            btnB.textContent = `${index + 1}. ${point.name}`;
+            btnB.onclick = () => {
+                if (!selectedA) return;
+                clearActiveButtons();
+                selectedB = point.coords;
+                btnB.classList.add('active-b');
+                buildRoute(selectedA, selectedB);
+            };
+            containerB.appendChild(btnB);
+        });
+    }
+
+    window.onload = initMap;
+</script>
+
+</body>
+</html>
