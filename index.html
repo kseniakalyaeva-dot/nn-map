@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>Понятный пеший маршрут</title>
+    <title>Маршрут — Туда / Обратно</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.js"></script>
@@ -13,7 +13,7 @@
     <style>
         *{margin:0;padding:0;box-sizing:border-box}
         body{font-family:'Segoe UI',sans-serif;background:#f8fafc;min-height:100vh}
-        .шапка{background:#0f172a;color:#fff;padding:10px 16px;text-align:center;border-bottom:3px solid #22c55e}
+        .шапка{background:#0f172a;color:#fff;padding:10px 16px;text-align:center;border-bottom:3px solid #22c55e;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap}
         .шапка h1{font-size:1.1rem}
         .шапка h1 span{color:#22c55e}
         .шапка .значок{background:#dcfce7;color:#16a34a;padding:2px 12px;border-radius:12px;font-size:0.55rem;font-weight:600}
@@ -42,6 +42,8 @@
         .кнопка-главная:hover{background:#16a34a}
         .кнопка-обычная{background:#f3f4f6;color:#374151}
         .кнопка-обычная:hover{background:#e5e7eb}
+        .кнопка-обратно{background:#f59e0b;color:#fff;flex:1}
+        .кнопка-обратно:hover{background:#d97706}
         .легенда{display:flex;flex-wrap:wrap;gap:4px;padding:2px 6px;background:#f9fafb;border-radius:6px;margin-bottom:3px}
         .элемент-легенды{display:flex;align-items:center;gap:2px;font-size:0.35rem;color:#6b7280}
         .цвет-линии{display:inline-block;width:10px;height:2px;border-radius:2px}
@@ -63,22 +65,21 @@
 <body>
 
 <div class="шапка">
-    <h1>🚶 <span>ПОНЯТНЫЙ ПЕШИЙ</span> МАРШРУТ</h1>
-    <span class="значок">📍 С подписями и направлениями</span>
+    <h1>🚶 <span>ТУДА</span> / <span style="color:#f59e0b;">ОБРАТНО</span></h1>
+    <span class="значок">🔄 Сначала туда, потом обратно</span>
 </div>
 
 <div class="основной">
     <div class="инфо" id="инфо">
-        <h2>📋 <span>ИНФОРМАЦИЯ О МАРШРУТЕ</span></h2>
+        <h2>📋 <span>ИНФОРМАЦИЯ</span></h2>
         <div class="блок" id="блокИнфо">
             <div class="ряд"><span>🟢 Старт:</span><span id="инфоСтарт">—</span></div>
             <div class="ряд"><span>🏁 Финиш:</span><span id="инфоФиниш">—</span></div>
             <div class="ряд"><span>📏 Расстояние:</span><span id="инфоРасстояние">—</span></div>
-            <div class="ряд"><span>🕒 Время пешком:</span><span id="инфоВремя">—</span></div>
-            <div class="ряд"><span>📍 Остановок:</span><span id="инфоОстановки">—</span></div>
+            <div class="ряд"><span>🕒 Время:</span><span id="инфоВремя">—</span></div>
         </div>
         <div class="результат" id="теорияРезультат">
-            🔄 Выберите точки и нажмите «Построить»
+            🔄 Выберите точки → «Построить» (туда)
         </div>
     </div>
 
@@ -88,16 +89,17 @@
             <button class="скрыть-панель" id="кнопкаЗакрыть">✕</button>
             <div class="панель-заголовок">📍 Выберите достопримечательности (до 6)</div>
             <div class="сетка-мест" id="сеткаМест"></div>
+            
             <div class="группа-кнопок">
                 <button class="кнопка кнопка-обычная" id="популярные">⭐ Популярные</button>
                 <button class="кнопка кнопка-обычная" id="сбросить">🗑️ Сброс</button>
-                <button class="кнопка кнопка-главная" id="построить">🚶 ПОСТРОИТЬ МАРШРУТ</button>
+                <button class="кнопка кнопка-главная" id="построить">🚶 ТУДА</button>
+                <button class="кнопка кнопка-обратно" id="обратно">🔄 ОБРАТНО</button>
             </div>
             <div class="легенда">
                 <span class="элемент-легенды"><span class="цвет-линии" style="background:#22c55e"></span> Маршрут "Туда"</span>
-                <span class="элемент-легенды"><span class="цвет-линии" style="background:#f59e0b;border-top:2px dashed #f59e0b"></span> Возврат</span>
+                <span class="элемент-легенды"><span class="цвет-линии" style="background:#f59e0b;border-top:2px dashed #f59e0b"></span> Маршрут "Обратно"</span>
                 <span class="элемент-легенды"><span class="цвет-точки" style="background:#ef4444"></span> Остановки</span>
-                <span class="элемент-легенды">📍 Старт/Финиш</span>
             </div>
             <div id="результат"></div>
         </div>
@@ -120,6 +122,8 @@ const места = [
 
 let выбранныеId=[0,1,2,6];
 let карта=null, маркеры=[], оптимальныеЛинии=[], линияВозврата=null, подписиРасстояний=[], маркерыСтрелок=[];
+let маршрутПостроен = false;
+let порядокМест = [];
 
 function расстояниеПоФормуле(широта1,долгота1,широта2,долгота2){
     const R=6371;
@@ -208,8 +212,10 @@ function переключитьМесто(id){
     показатьСписокМест();
     очиститьКарту();
     document.getElementById('результат').style.display='none';
-    document.getElementById('теорияРезультат').innerHTML='🔄 Выберите точки и нажмите «Построить»';
+    document.getElementById('теорияРезультат').innerHTML='🔄 Выберите точки → «Построить» (туда)';
     обновитьИнфо(null,null,0,0);
+    маршрутПостроен = false;
+    порядокМест = [];
 }
 
 function популярные(){
@@ -217,8 +223,10 @@ function популярные(){
     показатьСписокМест();
     очиститьКарту();
     document.getElementById('результат').style.display='none';
-    document.getElementById('теорияРезультат').innerHTML='🔄 Выберите точки и нажмите «Построить»';
+    document.getElementById('теорияРезультат').innerHTML='🔄 Выберите точки → «Построить» (туда)';
     обновитьИнфо(null,null,0,0);
+    маршрутПостроен = false;
+    порядокМест = [];
     setTimeout(построитьМаршрут,300);
 }
 
@@ -227,8 +235,10 @@ function сброситьВсе(){
     показатьСписокМест();
     очиститьКарту();
     document.getElementById('результат').style.display='none';
-    document.getElementById('теорияРезультат').innerHTML='🔄 Выберите точки и нажмите «Построить»';
+    document.getElementById('теорияРезультат').innerHTML='🔄 Выберите точки → «Построить» (туда)';
     обновитьИнфо(null,null,0,0);
+    маршрутПостроен = false;
+    порядокМест = [];
 }
 
 function очиститьКарту(){
@@ -302,28 +312,38 @@ function обновитьИнфо(старт, финиш, расстояние, 
     document.getElementById('инфоФиниш').textContent = финиш || '—';
     document.getElementById('инфоРасстояние').textContent = расстояние > 0 ? `${расстояние.toFixed(1)} км` : '—';
     document.getElementById('инфоВремя').textContent = время > 0 ? `${Math.round(время)} мин` : '—';
-    document.getElementById('инфоОстановки').textContent = выбранныеId.length > 0 ? выбранныеId.length : '—';
 }
 
+// ===== ПОСТРОИТЬ МАРШРУТ "ТУДА" =====
 async function построитьМаршрут(){
     if(выбранныеId.length<2){
         alert('Выберите хотя бы 2 точки!');
         return;
     }
+    
+    // Убираем жёлтую линию если была
+    if(линияВозврата){
+        карта.removeLayer(линияВозврата);
+        линияВозврата=null;
+    }
+    
     очиститьКарту();
+    маршрутПостроен = false;
+    
     const блокРезультата=document.getElementById('результат');
     блокРезультата.style.display='block';
-    блокРезультата.innerHTML=`<div class="загрузка"><span class="спиннер"></span> Ищем самый короткий маршрут...</div>`;
-    document.getElementById('теорияРезультат').innerHTML='⏳ Перебираем все варианты...';
+    блокРезультата.innerHTML=`<div class="загрузка"><span class="спиннер"></span> Строим маршрут "Туда"...</div>`;
+    document.getElementById('теорияРезультат').innerHTML='🟢 Маршрут "Туда"...';
+    
     const выбранныеМеста=места.filter(м=>выбранныеId.includes(м.id));
     
     // Находим оптимальный маршрут
     const результатTSP=решитьTSP(выбранныеId);
     const порядокId=результатTSP.маршрут.slice(0,-1).map(индекс=>выбранныеId[индекс]);
-    const порядокМест=порядокId.map(id=>места.find(м=>м.id===id));
+    порядокМест = порядокId.map(id=>места.find(м=>м.id===id));
     let общееРасстояние=0, общееВремя=0, всеКоординаты=[];
     
-    // Рисуем только оптимальный маршрут (зелёный)
+    // Рисуем только зелёный маршрут (туда)
     for(let k=0;k<порядокМест.length-1;k++){
         const от=порядокМест[k];
         const до=порядокМест[k+1];
@@ -337,7 +357,6 @@ async function построитьМаршрут(){
             общееВремя+=результат.время;
             всеКоординаты=всеКоординаты.concat(результат.координаты);
             
-            // Подпись расстояния
             const середина=Math.floor(результат.координаты.length/2);
             const широта=результат.координаты[середина][0];
             const долгота=результат.координаты[середина][1];
@@ -352,75 +371,97 @@ async function построитьМаршрут(){
         }
     }
     
-    // Возврат (жёлтый пунктир)
-    const первое=порядокМест[0];
-    const последнее=порядокМест[порядокМест.length-1];
-    const результатВозврата=await построитьУличныйМаршрут(
-        [L.latLng(последнее.широта,последнее.долгота), L.latLng(первое.широта,первое.долгота)],
-        '#f59e0b', 4, '8, 6'
-    );
-    if(результатВозврата){
-        линияВозврата=результатВозврата.управление;
-        общееРасстояние+=результатВозврата.расстояние;
-        общееВремя+=результатВозврата.время;
-    }
-    
     // Стрелка "ТУДА"
     if(всеКоординаты.length>0){
         добавитьСтрелку(всеКоординаты, '#22c55e', '▶ ТУДА');
     }
     
-    // Маркеры с номерами и подписями
+    // Маркеры
     обновитьМаркеры(порядокМест);
+    маршрутПостроен = true;
+    
     const времяВМинутах=Math.round(общееВремя);
     let текстМаршрута=порядокМест.map((м,i)=>`${i+1}. ${м.иконка} ${м.название}`).join(' → ');
     
-    // Обновляем информацию
-    обновитьИнфо(первое.название, первое.название, общееРасстояние, общееВремя);
+    обновитьИнфо(порядокМест[0].название, порядокМест[порядокМест.length-1].название, общееРасстояние, общееВремя);
     
     блокРезультата.innerHTML=`
-        🏆 <b>САМЫЙ КОРОТКИЙ МАРШРУТ НАЙДЕН!</b>
+        🟢 <b>МАРШРУТ "ТУДА" ПОСТРОЕН!</b>
         <br>📏 <b>${общееРасстояние.toFixed(1)} км</b> · ⏱️ <b>${времяВМинутах} мин</b> пешком
-        <br><span style="color:#22c55e;">✅ Это оптимальный маршрут</span>
-        <br><span style="color:#f59e0b;">🔄 Жёлтый</span> — возврат в <b>${первое.название}</b>
-        <br><small style="color:#9ca3af;">${текстМаршрута}</small>
+        <br><span style="color:#9ca3af;">${текстМаршрута}</span>
+        <br><span style="color:#f59e0b;">🔄 Нажмите «ОБРАТНО», чтобы вернуться</span>
     `;
     document.getElementById('теорияРезультат').innerHTML=`
-        🏆 <b>КОРОТКИЙ МАРШРУТ:</b> ${общееРасстояние.toFixed(1)} км, ${времяВМинутах} мин
-        <br>${порядокМест.map(м=>м.иконка).join(' → ')} → 🔄 возврат
+        🟢 <b>ТУДА:</b> ${общееРасстояние.toFixed(1)} км, ${времяВМинутах} мин
+        <br>${порядокМест.map(м=>м.иконка).join(' → ')}
     `;
     карта.fitBounds(L.latLngBounds(порядокМест.map(м=>[м.широта,м.долгота])),{padding:[60,60]});
 }
 
-// ===== МАРКЕРЫ С ПОДПИСЯМИ =====
-function обновитьМаркеры(порядокМест){
-    маркеры.forEach(м=>карта.removeLayer(м));
-    маркеры=[];
-    порядокМест.forEach((место,индекс)=>{
-        // Основной маркер с номером
-        const маркер=L.marker([место.широта,место.долгота],{
-            icon:L.divIcon({
-                html:`<div style="
-                    background:#ef4444;
-                    color:#fff;
-                    border-radius:50%;
-                    width:30px;
-                    height:30px;
-                    display:flex;
-                    align-items:center;
-                    justify-content:center;
-                    font-size:.75rem;
-                    font-weight:700;
-                    border:3px solid #fff;
-                    box-shadow:0 2px 10px rgba(239,68,68,0.35);
-                ">${индекс+1}</div>`,
-                iconSize:[30,30],
-                popupAnchor:[0,-15]
-            })
-        });
-        маркер.bindPopup(`<b>${место.иконка} ${место.название}</b>`);
-        маркер.addTo(карта);
-        маркеры.push(маркер);
-        
-        // Подпись под маркером
-        const подпись=L.marker([место.широта - 0.0015, место.долгота
+// ===== МАРШРУТ "ОБРАТНО" =====
+async function построитьОбратно(){
+    if(!маршрутПостроен || порядокМест.length < 2){
+        alert('Сначала постройте маршрут "Туда"!');
+        return;
+    }
+    
+    // Убираем зелёные линии
+    оптимальныеЛинии.forEach(л=>карта.removeLayer(л));
+    подписиРасстояний.forEach(л=>карта.removeLayer(л));
+    маркерыСтрелок.forEach(м=>карта.removeLayer(м));
+    оптимальныеЛинии=[]; подписиРасстояний=[]; маркерыСтрелок=[];
+    
+    // Если уже есть жёлтая линия — убираем
+    if(линияВозврата){
+        карта.removeLayer(линияВозврата);
+        линияВозврата=null;
+    }
+    
+    const блокРезультата=document.getElementById('результат');
+    блокРезультата.innerHTML=`<div class="загрузка"><span class="спиннер"></span> Строим маршрут "Обратно"...</div>`;
+    document.getElementById('теорияРезультат').innerHTML='🟡 Маршрут "Обратно"...';
+    
+    // Строим обратный маршрут (от последней точки к первой)
+    const обратныйПорядок = [...порядокМест].reverse();
+    let общееРасстояние=0, общееВремя=0, всеКоординаты=[];
+    
+    for(let k=0;k<обратныйПорядок.length-1;k++){
+        const от=обратныйПорядок[k];
+        const до=обратныйПорядок[k+1];
+        const результат=await построитьУличныйМаршрут(
+            [L.latLng(от.широта,от.долгота), L.latLng(до.широта,до.долгота)],
+            '#f59e0b', 5, null
+        );
+        if(результат){
+            линияВозврата = результат.управление;
+            общееРасстояние+=результат.расстояние;
+            общееВремя+=результат.время;
+            всеКоординаты=всеКоординаты.concat(результат.координаты);
+            
+            const середина=Math.floor(результат.координаты.length/2);
+            const широта=результат.координаты[середина][0];
+            const долгота=результат.координаты[середина][1];
+            const расстояниеМ=(результат.расстояние*1000).toFixed(0);
+            const подпись=L.marker([широта,долгота],{
+                icon:L.divIcon({
+                    html:`<div style="background:rgba(0,0,0,0.8);color:#fff;font-size:7px;font-weight:600;padding:2px 6px;border-radius:10px;border:1px solid #f59e0b;">${расстояниеМ} м</div>`,
+                    iconSize:[45,18]
+                })
+            }).addTo(карта);
+            подписиРасстояний.push(подпись);
+        }
+    }
+    
+    // Стрелка "ОБРАТНО"
+    if(всеКоординаты.length>0){
+        добавитьСтрелку(всеКоординаты, '#f59e0b', '◀ ОБРАТНО');
+    }
+    
+    const времяВМинутах=Math.round(общееВремя);
+    let текстМаршрута=обратныйПорядок.map((м,i)=>`${i+1}. ${м.иконка} ${м.название}`).join(' → ');
+    
+    обновитьИнфо(обратныйПорядок[0].название, обратныйПорядок[обратныйПорядок.length-1].название, общееРасстояние, общееВремя);
+    
+    блокРезультата.innerHTML=`
+        🟡 <b>МАРШРУТ "ОБРАТНО" ПОСТРОЕН!</b>
+        <br>📏 <
