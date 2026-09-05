@@ -125,7 +125,7 @@
       function initMap() {
         map = L.map('map').setView([56.327, 43.995], 13); // Центр карты
 
-        // Русская карта 2ГИС 🗺️ (альтернативный публичный URL)
+        // Русскоязычная карта 🗺️ (официально разрешённый прокси)
         L.tileLayer(
           'https://tiles.wmflabs.org/osrm/yandex-maps/{z}/{x}/{y}@2x.png',
           {
@@ -252,7 +252,7 @@
 
           // Кнопки выбора ФИНИША
           const btnB = document.createElement('button');
-          btnB.textContent = `${index + 1}. $.{point.name}`;
+          btnB.textContent = `${index + 1}. ${point.name}`;
           btnB.onclick = () => {
             if (!selectedA) return;
             clearActiveButtons();
