@@ -1,407 +1,227 @@
 <!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>Граф на карте — пеший маршрут</title>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.js"></script>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css" />
-    <script src="https://unpkg.com/leaflet-control-geocoder@2.4.0/dist/Control.Geocoder.js"></script>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder@2.4.0/dist/Control.Geocoder.css" />
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Маршруты по Нижнему Новгороду</title>
+    
+    <!-- Библиотека карт -->
+    <link rel="stylesheet" href='https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css'>
+    <script src='https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js'></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@mapbox/mapbox-gl-locales@latest/dist/ru.css">
+    <script src="https://cdn.jsdelivr.net/npm/@mapbox/mapbox-gl-locales@latest/dist/ru.js"></script>
+
     <style>
-        *{margin:0;padding:0;box-sizing:border-box}
-        body{font-family:'Segoe UI',sans-serif;background:#f8fafc;min-height:100vh}
-        .шапка{background:#0f172a;color:#fff;padding:10px 16px;text-align:center;border-bottom:3px solid #22c55e;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap}
-        .шапка h1{font-size:1.1rem}
-        .шапка h1 span{color:#22c55e}
-        .шапка .значок{background:#dcfce7;color:#16a34a;padding:2px 12px;border-radius:12px;font-size:0.55rem;font-weight:600}
-        .основной{display:flex;flex-direction:column;height:calc(100vh - 70px)}
-        @media(min-width:768px){.основной{flex-direction:row}}
-        .теория{background:#fff;padding:10px 14px;border-bottom:2px solid #e2e8f0;overflow-y:auto;max-height:180px;flex-shrink:0;font-size:0.75rem}
-        @media(min-width:768px){.теория{max-height:none;width:300px;border-bottom:none;border-right:2px solid #e2e8f0;flex-shrink:0;font-size:0.85rem}}
-        .теория h2{color:#0f172a;font-size:0.9rem;margin-bottom:4px}
-        .теория h2 span{color:#22c55e}
-        .теория ul{list-style:none;padding:0}
-        .теория li{padding:3px 0;color:#334155;border-bottom:1px solid #f1f5f9}
-        .теория li strong{color:#0f172a}
-        .теория .результат{background:#f1f5f9;border-radius:8px;padding:6px 10px;margin-top:6px;font-size:0.7rem;border-left:3px solid #22c55e}
-        .карта-контейнер{flex:1;position:relative}
-        #карта{width:100%;height:100%;position:absolute;top:0;left:0}
-        .панель{position:absolute;bottom:12px;left:12px;right:12px;background:rgba(255,255,255,0.96);backdrop-filter:blur(16px);border-radius:16px;padding:10px 12px;box-shadow:0 4px 20px rgba(0,0,0,0.1);z-index:1000;max-height:44%;overflow-y:auto;border:1px solid rgba(255,255,255,0.2)}
-        @media(min-width:768px){.панель{left:50%;transform:translateX(-50%);width:540px;max-height:36%;bottom:16px}}
-        .панель-заголовок{font-weight:600;font-size:0.5rem;color:#6b7280;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px}
-        .сетка-мест{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:5px}
-        .кнопка-места{background:#f3f4f6;color:#374151;border:none;padding:2px 8px;border-radius:10px;font-size:0.42rem;cursor:pointer;border:2px solid transparent;font-family:inherit}
-        .кнопка-места:hover{background:#e5e7eb}
-        .кнопка-места.активна{background:#dcfce7;border-color:#22c55e;color:#16a34a}
-        .группа-кнопок{display:flex;gap:4px;margin-bottom:5px;flex-wrap:wrap}
-        .кнопка{padding:4px 10px;border:none;border-radius:12px;font-weight:600;font-size:0.42rem;cursor:pointer;font-family:inherit}
-        .кнопка-главная{background:#22c55e;color:#fff;flex:1}
-        .кнопка-главная:hover{background:#16a34a}
-        .кнопка-обычная{background:#f3f4f6;color:#374151}
-        .кнопка-обычная:hover{background:#e5e7eb}
-        .легенда{display:flex;flex-wrap:wrap;gap:4px;padding:2px 6px;background:#f9fafb;border-radius:6px;margin-bottom:3px}
-        .элемент-легенды{display:flex;align-items:center;gap:2px;font-size:0.35rem;color:#6b7280}
-        .цвет-линии{display:inline-block;width:10px;height:2px;border-radius:2px}
-        .цвет-точки{display:inline-block;width:5px;height:5px;border-radius:50%}
-        #результат{font-size:0.42rem;padding:3px 6px;background:#f9fafb;border-radius:6px;display:none;line-height:1.4;color:#374151}
-        .загрузка{text-align:center;padding:3px;color:#22c55e;font-size:0.4rem}
-        .спиннер{display:inline-block;width:10px;height:10px;border:2px solid #e5e7eb;border-top:2px solid #22c55e;border-radius:50%;animation:кручение .8s linear infinite;margin-right:4px;vertical-align:middle}
-        @keyframes кручение{to{transform:rotate(360deg)}}
-        .скрыть-панель{display:none;float:right;background:0 0;border:none;color:#9ca3af;font-size:.8rem;cursor:pointer}
-        @media(max-width:767px){.скрыть-панель{display:block}}
-        .leaflet-control-geocoder{border-radius:12px!important;border:none!important;box-shadow:0 2px 12px rgba(0,0,0,0.08)!important;width:200px!important;max-width:85vw!important;margin-top:6px!important;margin-left:6px!important}
-        .leaflet-control-geocoder-form input{border-radius:12px!important;padding:4px 10px!important;font-size:12px!important;border:none!important;background:#fff!important;font-family:inherit!important}
-        .leaflet-control-zoom{border:none!important;box-shadow:0 2px 12px rgba(0,0,0,0.08)!important;margin-top:6px!important}
-        .leaflet-control-zoom a{background:#fff!important;color:#1a1a2e!important;border:none!important;width:26px!important;height:26px!important;line-height:26px!important}
-        .leaflet-control-attribution{display:none!important}
+      body {
+        margin: 0;
+        font-family: -apple-system, sans-serif;
+      }
+
+      #map {
+        width: 100vw;
+        height: 100vh;
+      }
+
+      /* Боковая панель */
+      .panel {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        background: white;
+        padding: 15px;
+        border-radius: 10px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        z-index: 1000;
+        display: grid;
+        gap: 15px;
+        max-width: 360px;
+      }
+
+      h2 { 
+        grid-column: 1 / -1; 
+        margin: 0 0 10px 0; 
+        font-size: 16px; 
+        color: #333; 
+        text-align: center;
+      }
+      
+      button {
+        width: 100%;
+        text-align: left;
+        padding: 10px;
+        margin-bottom: 6px;
+        border: 1px solid #ccc;
+        border-radius: 6px;
+        background: #fafafa;
+        cursor: pointer;
+        transition: all 0.2s;
+        font-size: 14px;
+        line-height: 1.4;
+      }
+
+      button:hover {
+        background: #f0f0f0;
+        border-color: #007bff;
+      }
+
+      /* Цвета активных кнопок */
+      .active-a { background: #d4edda !important; border-color: #155724 !important; font-weight: bold; }
+      .active-b { background: #f8d7da !important; border-color: #721c24 !important; font-weight: bold; }
+
+      /* Блок с маршрутом */
+      .route-info {
+        grid-column: 1 / -1;
+        padding: 10px;
+        border-top: 1px dashed #ddd;
+        font-size: 14px;
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.3s ease-in-out;
+      }
+
+      .route-info.active {
+        opacity: 1;
+        visibility: visible;
+      }
     </style>
-</head>
-<body>
+  </head>
 
-<div class="шапка">
-    <h1>🗺️ <span>ГРАФ НА КАРТЕ</span> · Пеший маршрут</h1>
-    <span class="значок">🚶 Пешеходный режим</span>
-</div>
-
-<div class="основной">
-    <div class="теория">
-        <h2>📐 <span>ТЕОРИЯ ГРАФОВ</span></h2>
-        <ul>
-            <li><strong>Граф</strong> — вершины и рёбра</li>
-            <li><strong>Вершины</strong> — 9 достопримечательностей</li>
-            <li><strong>Рёбра</strong> — все возможные пути</li>
-            <li><strong>Задача коммивояжёра</strong> — поиск <span style="color:#22c55e;font-weight:700;">самого короткого</span> замкнутого маршрута</li>
-            <li><strong>Оптимальный маршрут</strong> — зелёная линия (пешком)</li>
-            <li><strong>Возврат</strong> — жёлтая пунктирная</li>
-        </ul>
-        <div class="результат" id="теорияРезультат">
-            🔄 Выберите точки и нажмите «Построить»
-        </div>
+  <body>
+    <div class="panel">
+      <h2>🏃‍♂️ Откуда</h2>
+      <div id="list-a"></div>
+      <hr style="border: none; border-top: 2px dashed #eee; margin: 15px 0;" />
+      <h2>📍 Куда</h2>
+      <div id="list-b"></div>
+      <!-- Здесь будет информация о времени пути -->
+      <div class="route-info">Путь не построен.</div>
     </div>
 
-    <div class="карта-контейнер">
-        <div id="карта"></div>
-        <div class="панель" id="панель">
-            <button class="скрыть-панель" id="кнопкаЗакрыть">✕</button>
-            <div class="панель-заголовок">📍 Выберите достопримечательности (до 6)</div>
-            <div class="сетка-мест" id="сеткаМест"></div>
-            <div class="группа-кнопок">
-                <button class="кнопка кнопка-обычная" id="популярные">⭐ Популярные</button>
-                <button class="кнопка кнопка-обычная" id="сбросить">🗑️ Сброс</button>
-                <button class="кнопка кнопка-главная" id="построить">🚶 ПОСТРОИТЬ МАРШРУТ</button>
-            </div>
-            <div class="легенда">
-                <span class="элемент-легенды"><span class="цвет-линии" style="background:#9ca3af;border-top:2px dashed #9ca3af"></span> Граф</span>
-                <span class="элемент-легенды"><span class="цвет-линии" style="background:#22c55e"></span> Оптимальный</span>
-                <span class="элемент-легенды"><span class="цвет-линии" style="background:#f59e0b;border-top:2px dashed #f59e0b"></span> Возврат</span>
-                <span class="элемент-легенды"><span class="цвет-точки" style="background:#ef4444"></span> Вершины</span>
-            </div>
-            <div id="результат"></div>
-        </div>
-    </div>
-</div>
+    <div id="map"></div>
 
-<script>
-// ============= ДАННЫЕ =============
-const места = [
-    {id:0,название:"Кремль",широта:56.328624,долгота:44.002842,иконка:"🏰"},
-    {id:1,название:"Чкаловская лестница",широта:56.33083,долгота:44.00944,иконка:"📐"},
-    {id:2,название:"Большая Покровская",широта:56.317088,долгота:43.994829,иконка:"🏛️"},
-    {id:3,название:"Рождественская церковь",широта:56.327343,долгота:43.985028,иконка:"⛪"},
-    {id:4,название:"Нижегородская ярмарка",широта:56.328446,долгота:43.961168,иконка:"🏭"},
-    {id:5,название:"Набережная Федоровского",широта:56.326348,долгота:43.987481,иконка:"🌊"},
-    {id:6,название:"Памятник Минину",широта:56.326761,долгота:44.006844,иконка:"🗿"},
-    {id:7,название:"Александро-Невский собор",широта:56.3336,долгота:43.97118,иконка:"⛪"},
-    {id:8,название:"Канатная дорога",широта:56.323611,долгота:44.039167,иконка:"🚠"}
-];
+    <script>
+      // ВАШ ПОЛНЫЙ СПИСОК ИЗ 9 ТОЧЕК 👇
+      const points = [
+        {id: 1, name: 'Нижегородский кремль', coords: [56.328624, 44.002842]}, // Точка №1
+        {id: 2, name: 'Чкаловская лестница', coords: [56.33083, 44.00944]},
+        {id: 3, name: 'Улица Большая Покровская', coords: [56.317088, 43.994829]},
+        {id: 4, name: 'Рождественская церковь', coords: [56.327343, 43.985028]},
+        {id: 5, name: 'Нижегородская ярмарка', coords: [56.3284456049, 43.9611679730]},
+        {id: 6, name: 'Набережная Федоровского', coords: [56.326348, 43.987481]},
+        {id: 7, name: 'Памятник Минину', coords: [56.326761, 44.006844]},
+        {id: 8, name: 'Александро-Невский собор', coords: [56.3336, 43.97118]},
+        {id: 9, name: 'Канатная дорога', coords: [56.323611, 44.039167]}
+      ];
 
-let выбранныеId=[0,1,2,6];
-let карта=null, маркеры=[], всеЛинии=[], оптимальныеЛинии=[], линияВозврата=null, подписиРасстояний=[], маркерыСтрелок=[];
+      let map;
+      let selectedA = null;
+      let selectedB = null;
 
-function расстояниеПоФормуле(широта1,долгота1,широта2,долгота2){
-    const R=6371;
-    const dШирота=(широта2-широта1)*Math.PI/180;
-    const dДолгота=(долгота2-долгота1)*Math.PI/180;
-    const a=Math.sin(dШирота/2)**2+Math.cos(широта1*Math.PI/180)*Math.cos(широта2*Math.PI/180)*Math.sin(dДолгота/2)**2;
-    return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
-}
+      function initMap() {
+        const options = {
+          zoom: 13,
+          center: new mapboxgl.LngLat(43.995, 56.327),
+          mapTypeId: "roadmap"
+        };
 
-function получитьРасстояние(id1,id2){
-    const м1=места.find(м=>м.id===id1);
-    const м2=места.find(м=>м.id===id2);
-    return расстояниеПоФормуле(м1.широта,м1.долгота,м2.широта,м2.долгота);
-}
-
-function решитьTSP(ids){
-    const n=ids.length;
-    if(n<2) return {маршрут:[0],расстояние:0};
-    const матрица=Array(n).fill().map(()=>Array(n).fill(0));
-    for(let i=0;i<n;i++){
-        for(let j=i+1;j<n;j++){
-            const d=получитьРасстояние(ids[i],ids[j]);
-            матрица[i][j]=d;
-            матрица[j][i]=d;
-        }
-    }
-    let лучшийМаршрут=null;
-    let лучшееРасстояние=Infinity;
-    function перестановка(массив,начало){
-        if(начало===массив.length-1){
-            const маршрут=[0,...массив,0];
-            let dist=0;
-            for(let i=0;i<маршрут.length-1;i++){
-                dist+=матрица[маршрут[i]][маршрут[i+1]];
-            }
-            if(dist<лучшееРасстояние){
-                лучшееРасстояние=dist;
-                лучшийМаршрут=[...маршрут];
-            }
-            return;
-        }
-        for(let i=начало;i<массив.length;i++){
-            [массив[начало],массив[i]]=[массив[i],массив[начало]];
-            перестановка(массив,начало+1);
-            [массив[начало],массив[i]]=[массив[i],массив[начало]];
-        }
-    }
-    const другие=Array.from({length:n-1},(_,i)=>i+1);
-    перестановка(другие,0);
-    return {маршрут:лучшийМаршрут,расстояние:лучшееРасстояние};
-}
-
-function создатьКарту(){
-    карта=L.map('карта', {attributionControl: false}).setView([56.328,44.00],13);
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',{
-        attribution:' ',
-        subdomains:'abcd',
-        maxZoom:20
-    }).addTo(карта);
-    L.Control.geocoder({position:'topleft',placeholder:'Поиск на карте...',errorMessage:'Ничего не найдено',collapsed:false}).addTo(карта);
-    показатьСписокМест();
-    setTimeout(построитьМаршрут,500);
-}
-
-function показатьСписокМест(){
-    const контейнер=document.getElementById('сеткаМест');
-    контейнер.innerHTML='';
-    места.forEach(м=>{
-        const выбрано=выбранныеId.includes(м.id);
-        const кнопка=document.createElement('button');
-        кнопка.className=`кнопка-места ${выбрано?'активна':''}`;
-        кнопка.textContent=`${м.иконка} ${м.название}`;
-        кнопка.onclick=()=>переключитьМесто(м.id);
-        контейнер.appendChild(кнопка);
-    });
-}
-
-function переключитьМесто(id){
-    const индекс=выбранныеId.indexOf(id);
-    if(индекс===-1){
-        if(выбранныеId.length<6) выбранныеId.push(id);
-        else alert('Максимум 6 точек!');
-    } else {
-        выбранныеId.splice(индекс,1);
-    }
-    показатьСписокМест();
-    очиститьКарту();
-    document.getElementById('результат').style.display='none';
-    document.getElementById('теорияРезультат').innerHTML='🔄 Выберите точки и нажмите «Построить»';
-}
-
-function популярные(){
-    выбранныеId=[0,1,2,6];
-    показатьСписокМест();
-    очиститьКарту();
-    document.getElementById('результат').style.display='none';
-    document.getElementById('теорияРезультат').innerHTML='🔄 Выберите точки и нажмите «Построить»';
-    setTimeout(построитьМаршрут,300);
-}
-
-function сброситьВсе(){
-    выбранныеId=[];
-    показатьСписокМест();
-    очиститьКарту();
-    document.getElementById('результат').style.display='none';
-    document.getElementById('теорияРезультат').innerHTML='🔄 Выберите точки и нажмите «Построить»';
-}
-
-function очиститьКарту(){
-    всеЛинии.forEach(л=>карта.removeLayer(л));
-    оптимальныеЛинии.forEach(л=>карта.removeLayer(л));
-    if(линияВозврата){карта.removeLayer(линияВозврата);линияВозврата=null;}
-    подписиРасстояний.forEach(л=>карта.removeLayer(л));
-    маркеры.forEach(м=>карта.removeLayer(м));
-    маркерыСтрелок.forEach(м=>карта.removeLayer(м));
-    всеЛинии=[]; оптимальныеЛинии=[]; подписиРасстояний=[]; маркеры=[]; маркерыСтрелок=[];
-}
-
-function построитьУличныйМаршрут(точки,цвет,толщина,пунктир=null){
-    return new Promise(resolve=>{
-        const управление=L.Routing.control({
-            waypoints:точки,
-            router:L.Routing.osrmv1({serviceUrl:'https://router.project-osrm.org/route/v1',profile:'foot'}),
-            routeWhileDragging:false,
-            showAlternatives:false,
-            collapsible:false,
-            show:false,
-            addWaypoints:false,
-            draggableWaypoints:false,
-            lineOptions:{styles:[{color:цвет,weight:толщина,opacity:.9,dashArray:пунктир}]},
-            createMarker:()=>null
+        map = new mapboxgl.Map({
+          container: 'map',
+          style: 'mapbox://styles/autoscale/cj8f54g6h000i1cpk9u49w779', // Русскоязычная карта OSM
+          locale: 'ru'
         });
-        let решено=false;
-        управление.on('routesfound',e=>{
-            if(!решено){
-                решено=true;
-                const маршрут=e.routes[0];
-                const расстояние=маршрут.summary.totalDistance/1000;
-                const время=маршрут.summary.totalTime/60;
-                const координаты=маршрут.coordinates.map(c=>[c.lat,c.lng]);
-                resolve({управление,расстояние,время,координаты});
-            }
-        });
-        setTimeout(()=>{if(!решено){решено=true;resolve(null);}},10000);
-        управление.addTo(карта);
-    });
-}
 
-function добавитьСтрелку(координаты,цвет,подпись){
-    if(!координаты||координаты.length<2)return;
-    const середина=Math.floor(координаты.length/2);
-    const широта=координаты[середина][0];
-    const долгота=координаты[середина][1];
-    let угол=0;
-    if(середина>0&&середина<координаты.length-1){
-        const dx=координаты[середина+1][1]-координаты[середина-1][1];
-        const dy=координаты[середина+1][0]-координаты[середина-1][0];
-        угол=Math.atan2(dx,dy)*180/Math.PI;
-    }
-    const стрелка=L.marker([широта,долгота],{
-        icon:L.divIcon({
-            html:`<div style="background:${цвет};color:#fff;border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;border:2px solid #fff;box-shadow:0 2px 10px rgba(0,0,0,0.25);transform:rotate(${угол}deg);">▶</div>`,
-            iconSize:[28,28]
-        })
-    }).addTo(карта);
-    маркерыСтрелок.push(стрелка);
-    const подписьМаркер=L.marker([широта+0.002,долгота],{
-        icon:L.divIcon({
-            html:`<div style="background:rgba(0,0,0,0.75);color:#fff;padding:2px 6px;border-radius:10px;font-size:8px;font-weight:700;border:1px solid ${цвет};">${подпись}</div>`,
-            iconSize:[50,16]
-        })
-    }).addTo(карта);
-    маркерыСтрелок.push(подписьМаркер);
-}
+        renderLists();
+        placeStaticMarkers(); // Ставит метки всех точек сразу при загрузке страницы
+      }
 
-async function построитьМаршрут(){
-    if(выбранныеId.length<2){
-        alert('Выберите хотя бы 2 точки!');
-        return;
-    }
-    очиститьКарту();
-    const блокРезультата=document.getElementById('результат');
-    блокРезультата.style.display='block';
-    блокРезультата.innerHTML=`<div class="загрузка"><span class="спиннер"></span> Перебираем все варианты...</div>`;
-    document.getElementById('теорияРезультат').innerHTML='⏳ Ищем оптимальный маршрут...';
-    const выбранныеМеста=места.filter(м=>выбранныеId.includes(м.id));
-    let количестворебер=0;
-    for(let i=0;i<выбранныеМеста.length;i++){
-        for(let j=i+1;j<выбранныеМеста.length;j++){
-            const результат=await построитьУличныйМаршрут(
-                [L.latLng(выбранныеМеста[i].широта,выбранныеМеста[i].долгота), L.latLng(выбранныеМеста[j].широта,выбранныеМеста[j].долгота)],
-                '#9ca3af', 2, '8, 6'
-            );
-            if(результат){
-                всеЛинии.push(результат.управление);
-                количестворебер++;
-                const середина=Math.floor(результат.координаты.length/2);
-                const широта=результат.координаты[середина][0];
-                const долгота=результат.координаты[середина][1];
-                const расстояниеМ=(результат.расстояние*1000).toFixed(0);
-                const подпись=L.marker([широта,долгота],{
-                    icon:L.divIcon({
-                        html:`<div style="background:rgba(0,0,0,0.75);color:#fff;font-size:6px;font-weight:600;padding:2px 5px;border-radius:8px;border:1px solid #9ca3af;">${расстояниеМ} м</div>`,
-                        iconSize:[40,16]
-                    })
-                }).addTo(карта);
-                подписиРасстояний.push(подпись);
-            }
+      function clearOldRoute() {
+        if (!map) return;
+        let routes = map.data.getFeatureRoot().getChildFeatures();
+        for (let route of routes) {
+          map.data.remove(route);
         }
-    }
-    const результатTSP=решитьTSP(выбранныеId);
-    const порядокId=результатTSP.маршрут.slice(0,-1).map(индекс=>выбранныеId[индекс]);
-    const порядокМест=порядокId.map(id=>места.find(м=>м.id===id));
-    let общееРасстояние=0, общееВремя=0, всеКоординаты=[];
-    for(let k=0;k<порядокМест.length-1;k++){
-        const от=порядокМест[k];
-        const до=порядокМест[k+1];
-        const результат=await построитьУличныйМаршрут(
-            [L.latLng(от.широта,от.долгота), L.latLng(до.широта,до.долгота)],
-            '#22c55e', 4, null
+      }
+
+      function buildRoute(fromCoords, toCoords) {
+        clearOldRoute();
+        
+        const directionsService = new mapboxgl.DirectionsService();
+        const directionsRenderer = new mapboxgl.DirectionsRenderer({
+          suppressMarkers: true,
+          polylineOptions: {
+            strokeColor: '#007bff',
+            strokeWeight: 6
+          },
+          map: map
+        });
+
+        directionsService.route(
+          {
+            origin: fromCoords.reverse(), // Для Mapbox координаты меняются местами!
+            destination: toCoords.reverse(),
+            travelMode: mapboxgl.TravelMode.WALKING
+          },
+          (response, status) => {
+            if (status === "OK") {
+              directionsRenderer.setDirections(response);
+              map.fitBounds(directionsRenderer.getBounds());
+            } else {
+              alert("Не удалось построить маршрут");
+            }
+          }
         );
-        if(результат){
-            оптимальныеЛинии.push(результат.управление);
-            общееРасстояние+=результат.расстояние;
-            общееВремя+=результат.время;
-            всеКоординаты=всеКоординаты.concat(результат.координаты);
-        }
-    }
-    const первое=порядокМест[0];
-    const последнее=порядокМест[порядокМест.length-1];
-    const результатВозврата=await построитьУличныйМаршрут(
-        [L.latLng(последнее.широта,последнее.долгота), L.latLng(первое.широта,первое.долгота)],
-        '#f59e0b', 3, '8, 6'
-    );
-    if(результатВозврата){
-        линияВозврата=результатВозврата.управление;
-        общееРасстояние+=результатВозврата.расстояние;
-        общееВремя+=результатВозврата.время;
-    }
-    if(всеКоординаты.length>0){
-        добавитьСтрелку(всеКоординаты, '#22c55e', '▶ ТУДА');
-    }
-    обновитьМаркеры(порядокМест);
-    const времяВМинутах=Math.round(общееВремя);
-    let текстМаршрута=порядокМест.map((м,i)=>`${i+1}. ${м.иконка}`).join(' → ');
-    блокРезультата.innerHTML=`
-        🏆 <b>ОПТИМАЛЬНЫЙ МАРШРУТ НАЙДЕН!</b>
-        <br>📏 <b>${общееРасстояние.toFixed(1)} км</b> · ⏱️ <b>${времяВМинутах} мин</b> пешком
-        <br><span style="color:#22c55e;">✅ Это САМЫЙ КОРОТКИЙ маршрут!</span>
-        <br><span style="color:#9ca3af;">📊 Всего рёбер графа: ${количестворебер}</span>
-        <br><span style="color:#f59e0b;">🔄 Жёлтый</span> — возврат в <b>${первое.название}</b>
-        <br><small style="color:#9ca3af;">${текстМаршрута}</small>
-    `;
-    document.getElementById('теорияРезультат').innerHTML=`
-        🏆 <b>ОПТИМАЛЬНЫЙ МАРШРУТ:</b> ${общееРасстояние.toFixed(1)} км, ${времяВМинутах} мин
-        <br>${порядокМест.map(м=>м.иконка).join(' → ')} → 🔄 возврат
-    `;
-    карта.fitBounds(L.latLngBounds(порядокМест.map(м=>[м.широта,м.долгота])),{padding:[60,60]});
-}
+      }
 
-function обновитьМаркеры(порядокМест){
-    маркеры.forEach(м=>карта.removeLayer(м));
-    маркеры=[];
-    порядокМест.forEach((место,индекс)=>{
-        const маркер=L.marker([место.широта,место.долгота],{
-            icon:L.divIcon({
-                html:`<div style="background:#ef4444;color:#fff;border-radius:50%;width:26px;height:26px;display:flex;align-items:center;justify-content:center;font-size:.65rem;font-weight:700;border:2px solid #fff;box-shadow:0 2px 10px rgba(239,68,68,0.35);">${индекс+1}</div>`,
-                iconSize:[26,26],
-                popupAnchor:[0,-13]
-            })
+      function renderLists() {
+        const containerA = document.getElementById('list-a');
+        const containerB = document.getElementById('list-b');
+
+        points.forEach((point, index) => {
+          // Кнопки выбора СТАРТА
+          const btnA = document.createElement('button');
+          btnA.textContent = `${index + 1}. ${point.name}`;
+          btnA.onclick = () => {
+            clearActiveButtons();
+            selectedA = point.coords;
+            btnA.classList.add('active-a');
+            
+            if (selectedB) {
+              buildRoute(selectedA, selectedB);
+            } else {
+              map.panTo([...point.coords].reverse()); // Для Mapbox меняем порядок координат
+            }
+          };
+          containerA.appendChild(btnA);
+
+          // Кнопки выбора ФИНИША
+          const btnB = document.createElement('button');
+          btnB.textContent = `${index + 1}. ${point.name}`;
+          btnB.onclick = () => {
+            if (!selectedA) return;
+            clearActiveButtons();
+            selectedB = point.coords;
+            btnB.classList.add('active-b');
+            buildRoute(selectedA, selectedB);
+          };
+          containerB.appendChild(btnB);
         });
-        маркер.bindPopup(`<b>${место.иконка} ${место.название}</b>`);
-        маркер.addTo(карта);
-        маркеры.push(маркер);
-    });
-}
+      }
 
-document.getElementById('кнопкаЗакрыть').onclick=()=>{document.getElementById('панель').style.display='none';};
-document.getElementById('популярные').onclick=популярные;
-document.getElementById('сбросить').onclick=сброситьВсе;
-document.getElementById('построить').onclick=построитьМаршрут;
-document.addEventListener('DOMContentLoaded',создатьКарту);
-</script>
-</body>
+      function clearActiveButtons() {
+        document.querySelectorAll('#list-a button, #list-b button')
+          .forEach((btn) =>
+            btn.classList.remove('active-a', 'active-b'));
+      }
+
+      function placeStaticMarkers() {
+        points.forEach(p => {
+          new mapboxgl.Marker()
+            .setLngLat([p.coords[1], p.coords[0]]) // Меняем порядок координат
+            .setPopup(new mapboxgl.Popup({closeButton: false}).setHTML(`<b>${p.name}</b>`))
+            .addTo(map);
+        });
+      }
+
+      window.onload = initMap;
+    </script>
+  </body>
 </html>
