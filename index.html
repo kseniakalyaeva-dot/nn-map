@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>Маршрут — Туда / Обратно</title>
+    <title>Туда / Обратно — пеший маршрут</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.js"></script>
@@ -79,7 +79,7 @@
             <div class="ряд"><span>🕒 Время:</span><span id="инфоВремя">—</span></div>
         </div>
         <div class="результат" id="теорияРезультат">
-            🔄 Выберите точки → «Построить» (туда)
+            🔄 Выберите точки → «ТУДА»
         </div>
     </div>
 
@@ -212,7 +212,7 @@ function переключитьМесто(id){
     показатьСписокМест();
     очиститьКарту();
     document.getElementById('результат').style.display='none';
-    document.getElementById('теорияРезультат').innerHTML='🔄 Выберите точки → «Построить» (туда)';
+    document.getElementById('теорияРезультат').innerHTML='🔄 Выберите точки → «ТУДА»';
     обновитьИнфо(null,null,0,0);
     маршрутПостроен = false;
     порядокМест = [];
@@ -223,7 +223,7 @@ function популярные(){
     показатьСписокМест();
     очиститьКарту();
     document.getElementById('результат').style.display='none';
-    document.getElementById('теорияРезультат').innerHTML='🔄 Выберите точки → «Построить» (туда)';
+    document.getElementById('теорияРезультат').innerHTML='🔄 Выберите точки → «ТУДА»';
     обновитьИнфо(null,null,0,0);
     маршрутПостроен = false;
     порядокМест = [];
@@ -235,7 +235,7 @@ function сброситьВсе(){
     показатьСписокМест();
     очиститьКарту();
     document.getElementById('результат').style.display='none';
-    document.getElementById('теорияРезультат').innerHTML='🔄 Выберите точки → «Построить» (туда)';
+    document.getElementById('теорияРезультат').innerHTML='🔄 Выберите точки → «ТУДА»';
     обновитьИнфо(null,null,0,0);
     маршрутПостроен = false;
     порядокМест = [];
@@ -389,7 +389,7 @@ async function построитьМаршрут(){
         🟢 <b>МАРШРУТ "ТУДА" ПОСТРОЕН!</b>
         <br>📏 <b>${общееРасстояние.toFixed(1)} км</b> · ⏱️ <b>${времяВМинутах} мин</b> пешком
         <br><span style="color:#9ca3af;">${текстМаршрута}</span>
-        <br><span style="color:#f59e0b;">🔄 Нажмите «ОБРАТНО», чтобы вернуться</span>
+        <br><span style="color:#f59e0b;">🔄 Нажмите «ОБРАТНО»</span>
     `;
     document.getElementById('теорияРезультат').innerHTML=`
         🟢 <b>ТУДА:</b> ${общееРасстояние.toFixed(1)} км, ${времяВМинутах} мин
@@ -464,4 +464,74 @@ async function построитьОбратно(){
     
     блокРезультата.innerHTML=`
         🟡 <b>МАРШРУТ "ОБРАТНО" ПОСТРОЕН!</b>
-        <br>📏 <
+        <br>📏 <b>${общееРасстояние.toFixed(1)} км</b> · ⏱️ <b>${времяВМинутах} мин</b> пешком
+        <br><span style="color:#9ca3af;">${текстМаршрута}</span>
+        <br><span style="color:#22c55e;">🟢 Нажмите «ТУДА»</span>
+    `;
+    document.getElementById('теорияРезультат').innerHTML=`
+        🟡 <b>ОБРАТНО:</b> ${общееРасстояние.toFixed(1)} км, ${времяВМинутах} мин
+        <br>${обратныйПорядок.map(м=>м.иконка).join(' → ')}
+    `;
+    карта.fitBounds(L.latLngBounds(обратныйПорядок.map(м=>[м.широта,м.долгота])),{padding:[60,60]});
+}
+
+// ===== МАРКЕРЫ С ПОДПИСЯМИ =====
+function обновитьМаркеры(порядокМест){
+    маркеры.forEach(м=>карта.removeLayer(м));
+    маркеры=[];
+    порядокМест.forEach((место,индекс)=>{
+        // Основной маркер с номером
+        const маркер=L.marker([место.широта,место.долгота],{
+            icon:L.divIcon({
+                html:`<div style="
+                    background:#ef4444;
+                    color:#fff;
+                    border-radius:50%;
+                    width:30px;
+                    height:30px;
+                    display:flex;
+                    align-items:center;
+                    justify-content:center;
+                    font-size:.75rem;
+                    font-weight:700;
+                    border:3px solid #fff;
+                    box-shadow:0 2px 10px rgba(239,68,68,0.35);
+                ">${индекс+1}</div>`,
+                iconSize:[30,30],
+                popupAnchor:[0,-15]
+            })
+        });
+        маркер.bindPopup(`<b>${место.иконка} ${место.название}</b>`);
+        маркер.addTo(карта);
+        маркеры.push(маркер);
+        
+        // Подпись под маркером
+        const подпись=L.marker([место.широта - 0.0015, место.долгота],{
+            icon:L.divIcon({
+                html:`<div style="
+                    background:rgba(0,0,0,0.7);
+                    color:#fff;
+                    font-size:8px;
+                    font-weight:600;
+                    padding:2px 6px;
+                    border-radius:8px;
+                    border:1px solid #ef4444;
+                    text-align:center;
+                    white-space:nowrap;
+                ">${место.иконка} ${место.название}</div>`,
+                iconSize:[120,22]
+            })
+        }).addTo(карта);
+        маркеры.push(подпись);
+    });
+}
+
+document.getElementById('кнопкаЗакрыть').onclick=()=>{document.getElementById('панель').style.display='none';};
+document.getElementById('популярные').onclick=популярные;
+document.getElementById('сбросить').onclick=сброситьВсе;
+document.getElementById('построить').onclick=построитьМаршрут;
+document.getElementById('обратно').onclick=построитьОбратно;
+document.addEventListener('DOMContentLoaded',создатьКарту);
+</script>
+</body>
+</html>
